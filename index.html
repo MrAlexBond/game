@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hype Tycoon</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background: #0f0f1b; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        .header { padding: 20px; background: #1a1a2e; border-bottom: 2px solid #ffd700; }
+        #balance { font-size: 42px; color: #ffd700; font-weight: bold; }
+        #rank { font-size: 14px; color: #888; }
+        .hero { width: 180px; margin: 30px auto; cursor: pointer; transition: 0.1s; }
+        .hero:active { transform: scale(0.9); }
+        .upgrades { padding: 20px; overflow-y: auto; height: 300px; }
+        .btn { background: #ffd700; color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 10px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div id="rank">Статус: Официант</div>
+        <div id="balance">$0</div>
+    </div>
+
+    <div class="hero" onclick="tap()">
+        <svg viewBox="0 0 100 100" width="180">
+            <circle cx="50" cy="50" r="45" fill="#ffd700" />
+            <text x="50" y="65" font-size="40" text-anchor="middle">👤</text>
+        </svg>
+    </div>
+
+    <div class="upgrades">
+        <div id="next-goal">След. цель: Чайная лавка ($50)</div>
+        <button class="btn" onclick="buyUpgrade()">Купить Улучшение</button>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        let money = 0;
+        let perClick = 1;
+
+        function tap() {
+            money += perClick;
+            updateUI();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function buyUpgrade() {
+            if (money >= 50) {
+                money -= 50;
+                perClick += 2;
+                document.getElementById('rank').innerText = "Статус: Владелец лавки";
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('balance').innerText = '$' + money;
+        }
+    </script>
+</body>
+</html>
