@@ -120,41 +120,41 @@
         let income = parseFloat(localStorage.getItem('income')) || 0;
         let currentStatus = localStorage.getItem('status') || "Официант";
 
-        const upgrades = [
-            { id: 1, name: "Доставка еды", baseCost: 15, add: 1, status: "Курьер", icon: "🚲" },
-            { id: 2, name: "Чайная лавка", baseCost: 150, add: 8, status: "Предприниматель", icon: "☕" },
-            { id: 3, name: "Таксопарк", baseCost: 1200, add: 45, status: "Менеджер", icon: "🚕" },
-            { id: 4, name: "ЖК в Дубае", baseCost: 15000, add: 250, status: "Застройщик", icon: "🏢" },
-            { id: 5, name: "Бурдж-Халифа", baseCost: 200000, add: 1500, status: "Легенда Дубая", icon: "🏙️" }
-        ];
+        // 1. Обновленный массив (добавляем путь к картинке)
+const upgrades = [
+    { id: 1, name: "Доставка еды", baseCost: 15, add: 1, status: "Курьер", image: "hero.png" }, // Используем нашего героя как иконку первого этапа
+    { id: 2, name: "Чайная лавка", baseCost: 150, add: 8, status: "Предприниматель", image: "shop.png" }, // Твоя новая картинка
+    { id: 3, name: "Таксопарк", baseCost: 1200, add: 45, status: "Менеджер", image: "taxi.png" },
+    { id: 4, name: "ЖК в Дубае", baseCost: 15000, add: 250, status: "Застройщик", image: "building.png" },
+    { id: 5, name: "Бурдж-Халифа", baseCost: 200000, add: 1500, status: "Легенда Дубая", image: "burj.png" }
+];
 
-        function updateUI() {
-            document.getElementById('balance').innerText = '$' + Math.floor(money);
-            document.getElementById('income-display').innerText = `Доход: $${income} /сек`;
-            document.getElementById('status').innerText = `Статус: ${currentStatus}`;
-            renderUpgrades();
-        }
-
-        function renderUpgrades() {
-            const list = document.getElementById('upgrades-list');
-            list.innerHTML = '';
-            upgrades.forEach(upg => {
-                let currentCost = Math.floor(upg.baseCost * Math.pow(1.5, 0)); // Здесь можно добавить уровень каждого здания
-                const card = document.createElement('div');
-                card.className = `upgrade-item ${money < upg.baseCost ? 'locked' : ''}`;
-                card.innerHTML = `
-                    <div class="upgrade-info">
-                        <b>${upg.icon} ${upg.name}</b>
-                        <span>+$${upg.add}/сек</span>
-                    </div>
-                    <button class="buy-btn" onclick="buyUpgrade(${upg.id})" ${money < upg.baseCost ? 'disabled' : ''}>
-                        $${upg.baseCost}
-                    </button>
-                `;
-                list.appendChild(card);
-            });
-        }
-
+// 2. Обновленная функция отрисовки
+function renderUpgrades() {
+    const list = document.getElementById('upgrades-list');
+    list.innerHTML = '';
+    upgrades.forEach(upg => {
+        const card = document.createElement('div');
+        card.className = `upgrade-item ${money < upg.baseCost ? 'locked' : ''}`;
+        
+        // Добавляем верстку с картинкой
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 50px; height: 50px; background: #1a1a2e; border-radius: 10px; overflow: hidden; border: 1px solid var(--gold);">
+                    <img src="${upg.image}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="upgrade-info">
+                    <b>${upg.name}</b>
+                    <span>+$${upg.add}/сек</span>
+                </div>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade(${upg.id})" ${money < upg.baseCost ? 'disabled' : ''}>
+                $${upg.baseCost}
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
         function tap() {
             money += 1;
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
