@@ -3,112 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dubai Empire: From Zero to Hero</title>
+    <title>Dubai Empire</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --gold: #ffd700;
-            --dark-blue: #0f172a;
-            --light-blue: #1e293b;
-            --accent: #38bdf8;
-        }
-        body {
-            background: var(--dark-blue);
-            color: white;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-        }
-        .header {
-            width: 100%;
-            padding: 20px 0;
-            background: var(--light-blue);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        #status { font-size: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
-        #balance { font-size: 42px; font-weight: bold; color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.3); }
-        
-        .main-game {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-        }
-        .tap-area {
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, var(--light-blue) 0%, var(--dark-blue) 100%);
-            border: 8px solid var(--gold);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.1s;
-            box-shadow: 0 0 40px rgba(255,215,0,0.1);
-            position: relative;
-        }
+        :root { --gold: #ffd700; --dark: #0f172a; --card: #1e293b; }
+        body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
+        .header { width: 100%; padding: 20px 0; background: var(--card); text-align: center; border-bottom: 2px solid var(--gold); }
+        #balance { font-size: 42px; font-weight: bold; color: var(--gold); }
+        .main-game { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .tap-area { width: 220px; height: 220px; border: 5px solid var(--gold); border-radius: 50%; overflow: hidden; cursor: pointer; transition: 0.1s; box-shadow: 0 0 20px rgba(255,215,0,0.2); }
         .tap-area:active { transform: scale(0.95); }
-        .tap-area span { font-size: 80px; }
-
-        .upgrades-panel {
-            width: 100%;
-            background: var(--light-blue);
-            border-radius: 30px 30px 0 0;
-            padding: 20px;
-            max-height: 40%;
-            overflow-y: auto;
-        }
-        .upgrade-item {
-            background: #2d3748;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #4a5568;
-        }
-        .upgrade-item.locked { opacity: 0.5; }
-        .upgrade-info b { display: block; font-size: 16px; margin-bottom: 4px; }
-        .upgrade-info span { font-size: 13px; color: #cbd5e0; }
-        .buy-btn {
-            background: var(--gold);
-            color: black;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .buy-btn:disabled { background: #718096; cursor: not-allowed; }
+        .upgrades-panel { width: 100%; background: var(--card); border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; overflow-y: auto; height: 40%; }
+        .upgrade-item { background: #2d3748; border-radius: 12px; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .upgrade-img { width: 50px; height: 50px; border-radius: 8px; border: 1px solid var(--gold); margin-right: 15px; object-fit: cover; }
+        .buy-btn { background: var(--gold); border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
+        .buy-btn:disabled { background: #4a5568; color: #a0aec0; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div id="status">Статус: Официант</div>
+        <div id="status" style="font-size: 12px; color: #38bdf8; letter-spacing: 1px;">СТАТУС: ОФИЦИАНТ</div>
         <div id="balance">$0</div>
     </div>
 
     <div class="main-game">
-       <div class="tap-area" id="tap-btn">
-    <img src="hero.png" alt="Главный герой" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+        <div class="tap-area" onclick="tap()">
+            <img src="hero.png" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
-        <p id="income-display" style="color: #a0aec0; margin-top: 20px;">Доход: $0 /сек</p>
+        <p id="income-display" style="margin-top: 15px; color: #94a3b8;">Доход: $0 /сек</p>
     </div>
 
     <div class="upgrades-panel">
-        <h3 style="margin-top: 0;">Бизнес-империя</h3>
         <div id="upgrades-list"></div>
     </div>
 
@@ -116,59 +42,32 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        // Данные (убедись, что файлы называются именно так!)
+        const upgradesData = [
+            { id: 1, name: "Доставка еды", cost: 15, add: 1, img: "hero.png", status: "КУРЬЕР" },
+            { id: 2, name: "Чайная лавка", cost: 150, add: 8, img: "shop.png", status: "ПРЕДПРИНИМАТЕЛЬ" },
+            { id: 3, name: "Таксопарк", cost: 1200, add: 45, img: "taxi.png", status: "МЕНЕДЖЕР" },
+            { id: 4, name: "ЖК в Дубае", cost: 15000, add: 250, img: "building.png", status: "ЗАСТРОЙЩИК" },
+            { id: 5, name: "Бурдж-Халифа", cost: 200000, add: 1500, img: "burj.png", status: "ЛЕГЕНДА ДУБАЯ" }
+        ];
+
         let money = parseFloat(localStorage.getItem('money')) || 0;
         let income = parseFloat(localStorage.getItem('income')) || 0;
-        let currentStatus = localStorage.getItem('status') || "Официант";
+        let currentStatus = localStorage.getItem('status') || "ОФИЦИАНТ";
 
-        // 1. Обновленный массив (добавляем путь к картинке)
-const upgrades = [
-    { id: 1, name: "Доставка еды", baseCost: 15, add: 1, status: "Курьер", image: "hero.png" }, // Используем нашего героя как иконку первого этапа
-    { id: 2, name: "Чайная лавка", baseCost: 150, add: 8, status: "Предприниматель", image: "shop.png" }, // Твоя новая картинка
-    { id: 3, name: "Таксопарк", baseCost: 1200, add: 45, status: "Менеджер", image: "taxi.png" },
-    { id: 4, name: "ЖК в Дубае", baseCost: 15000, add: 250, status: "Застройщик", image: "building.png" },
-    { id: 5, name: "Бурдж-Халифа", baseCost: 200000, add: 1500, status: "Легенда Дубая", image: "burj.png" }
-];
-
-// 2. Обновленная функция отрисовки
-function renderUpgrades() {
-    const list = document.getElementById('upgrades-list');
-    list.innerHTML = '';
-    upgrades.forEach(upg => {
-        const card = document.createElement('div');
-        card.className = `upgrade-item ${money < upg.baseCost ? 'locked' : ''}`;
-        
-        // Добавляем верстку с картинкой
-        card.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 50px; height: 50px; background: #1a1a2e; border-radius: 10px; overflow: hidden; border: 1px solid var(--gold);">
-                    <img src="${upg.image}" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="upgrade-info">
-                    <b>${upg.name}</b>
-                    <span>+$${upg.add}/сек</span>
-                </div>
-            </div>
-            <button class="buy-btn" onclick="buyUpgrade(${upg.id})" ${money < upg.baseCost ? 'disabled' : ''}>
-                $${upg.baseCost}
-            </button>
-        `;
-        list.appendChild(card);
-    });
-}
         function tap() {
             money += 1;
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             updateUI();
             save();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
         function buyUpgrade(id) {
-            const upg = upgrades.find(u => u.id === id);
-            if (money >= upg.baseCost) {
-                money -= upg.baseCost;
+            const upg = upgradesData.find(u => u.id === id);
+            if (money >= upg.cost) {
+                money -= upg.cost;
                 income += upg.add;
                 currentStatus = upg.status;
-                upg.baseCost = Math.floor(upg.baseCost * 1.5);
                 updateUI();
                 save();
             }
@@ -180,12 +79,35 @@ function renderUpgrades() {
             localStorage.setItem('status', currentStatus);
         }
 
-        document.getElementById('tap-btn').addEventListener('click', tap);
+        function updateUI() {
+            document.getElementById('balance').innerText = '$' + Math.floor(money);
+            document.getElementById('income-display').innerText = `Доход: $${income} /сек`;
+            document.getElementById('status').innerText = `СТАТУС: ${currentStatus}`;
+            
+            const list = document.getElementById('upgrades-list');
+            list.innerHTML = '';
+            upgradesData.forEach(upg => {
+                const item = document.createElement('div');
+                item.className = 'upgrade-item';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <img src="${upg.img}" class="upgrade-img">
+                        <div>
+                            <div style="font-weight: bold; font-size: 14px;">${upg.name}</div>
+                            <div style="font-size: 12px; color: #94a3b8;">+$${upg.add}/сек</div>
+                        </div>
+                    </div>
+                    <button class="buy-btn" onclick="buyUpgrade(${upg.id})" ${money < upg.cost ? 'disabled' : ''}>
+                        $${upg.cost}
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
 
         setInterval(() => {
             money += income;
             updateUI();
-            if (income > 0) save();
         }, 1000);
 
         updateUI();
