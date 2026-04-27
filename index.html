@@ -1,64 +1,194 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hype Tycoon</title>
+    <title>Dubai Empire: From Zero to Hero</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0f0f1b; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        .header { padding: 20px; background: #1a1a2e; border-bottom: 2px solid #ffd700; }
-        #balance { font-size: 42px; color: #ffd700; font-weight: bold; }
-        #rank { font-size: 14px; color: #888; }
-        .hero { width: 180px; margin: 30px auto; cursor: pointer; transition: 0.1s; }
-        .hero:active { transform: scale(0.9); }
-        .upgrades { padding: 20px; overflow-y: auto; height: 300px; }
-        .btn { background: #ffd700; color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-top: 10px; width: 100%; }
+        :root {
+            --gold: #ffd700;
+            --dark-blue: #0f172a;
+            --light-blue: #1e293b;
+            --accent: #38bdf8;
+        }
+        body {
+            background: var(--dark-blue);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        .header {
+            width: 100%;
+            padding: 20px 0;
+            background: var(--light-blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        #status { font-size: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        #balance { font-size: 42px; font-weight: bold; color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+        
+        .main-game {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .tap-area {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, var(--light-blue) 0%, var(--dark-blue) 100%);
+            border: 8px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 0 40px rgba(255,215,0,0.1);
+            position: relative;
+        }
+        .tap-area:active { transform: scale(0.95); }
+        .tap-area span { font-size: 80px; }
+
+        .upgrades-panel {
+            width: 100%;
+            background: var(--light-blue);
+            border-radius: 30px 30px 0 0;
+            padding: 20px;
+            max-height: 40%;
+            overflow-y: auto;
+        }
+        .upgrade-item {
+            background: #2d3748;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #4a5568;
+        }
+        .upgrade-item.locked { opacity: 0.5; }
+        .upgrade-info b { display: block; font-size: 16px; margin-bottom: 4px; }
+        .upgrade-info span { font-size: 13px; color: #cbd5e0; }
+        .buy-btn {
+            background: var(--gold);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .buy-btn:disabled { background: #718096; cursor: not-allowed; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <div id="rank">Статус: Официант</div>
+        <div id="status">Статус: Официант</div>
         <div id="balance">$0</div>
     </div>
 
-    <div class="hero" onclick="tap()">
-        <svg viewBox="0 0 100 100" width="180">
-            <circle cx="50" cy="50" r="45" fill="#ffd700" />
-            <text x="50" y="65" font-size="40" text-anchor="middle">👤</text>
-        </svg>
+    <div class="main-game">
+        <div class="tap-area" id="tap-btn">
+            <span>👤</span>
+        </div>
+        <p id="income-display" style="color: #a0aec0; margin-top: 20px;">Доход: $0 /сек</p>
     </div>
 
-    <div class="upgrades">
-        <div id="next-goal">След. цель: Чайная лавка ($50)</div>
-        <button class="btn" onclick="buyUpgrade()">Купить Улучшение</button>
+    <div class="upgrades-panel">
+        <h3 style="margin-top: 0;">Бизнес-империя</h3>
+        <div id="upgrades-list"></div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
+        tg.expand();
 
-        let money = 0;
-        let perClick = 1;
+        let money = parseFloat(localStorage.getItem('money')) || 0;
+        let income = parseFloat(localStorage.getItem('income')) || 0;
+        let currentStatus = localStorage.getItem('status') || "Официант";
 
-        function tap() {
-            money += perClick;
-            updateUI();
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        const upgrades = [
+            { id: 1, name: "Доставка еды", baseCost: 15, add: 1, status: "Курьер", icon: "🚲" },
+            { id: 2, name: "Чайная лавка", baseCost: 150, add: 8, status: "Предприниматель", icon: "☕" },
+            { id: 3, name: "Таксопарк", baseCost: 1200, add: 45, status: "Менеджер", icon: "🚕" },
+            { id: 4, name: "ЖК в Дубае", baseCost: 15000, add: 250, status: "Застройщик", icon: "🏢" },
+            { id: 5, name: "Бурдж-Халифа", baseCost: 200000, add: 1500, status: "Легенда Дубая", icon: "🏙️" }
+        ];
+
+        function updateUI() {
+            document.getElementById('balance').innerText = '$' + Math.floor(money);
+            document.getElementById('income-display').innerText = `Доход: $${income} /сек`;
+            document.getElementById('status').innerText = `Статус: ${currentStatus}`;
+            renderUpgrades();
         }
 
-        function buyUpgrade() {
-            if (money >= 50) {
-                money -= 50;
-                perClick += 2;
-                document.getElementById('rank').innerText = "Статус: Владелец лавки";
+        function renderUpgrades() {
+            const list = document.getElementById('upgrades-list');
+            list.innerHTML = '';
+            upgrades.forEach(upg => {
+                let currentCost = Math.floor(upg.baseCost * Math.pow(1.5, 0)); // Здесь можно добавить уровень каждого здания
+                const card = document.createElement('div');
+                card.className = `upgrade-item ${money < upg.baseCost ? 'locked' : ''}`;
+                card.innerHTML = `
+                    <div class="upgrade-info">
+                        <b>${upg.icon} ${upg.name}</b>
+                        <span>+$${upg.add}/сек</span>
+                    </div>
+                    <button class="buy-btn" onclick="buyUpgrade(${upg.id})" ${money < upg.baseCost ? 'disabled' : ''}>
+                        $${upg.baseCost}
+                    </button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function tap() {
+            money += 1;
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            updateUI();
+            save();
+        }
+
+        function buyUpgrade(id) {
+            const upg = upgrades.find(u => u.id === id);
+            if (money >= upg.baseCost) {
+                money -= upg.baseCost;
+                income += upg.add;
+                currentStatus = upg.status;
+                upg.baseCost = Math.floor(upg.baseCost * 1.5);
                 updateUI();
+                save();
             }
         }
 
-        function updateUI() {
-            document.getElementById('balance').innerText = '$' + money;
+        function save() {
+            localStorage.setItem('money', money);
+            localStorage.setItem('income', income);
+            localStorage.setItem('status', currentStatus);
         }
+
+        document.getElementById('tap-btn').addEventListener('click', tap);
+
+        setInterval(() => {
+            money += income;
+            updateUI();
+            if (income > 0) save();
+        }, 1000);
+
+        updateUI();
     </script>
 </body>
 </html>
